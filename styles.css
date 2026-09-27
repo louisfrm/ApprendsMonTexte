@@ -6,31 +6,27 @@ button, textarea, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #9fbd9e; outline-offset: 3px; }
 [hidden] { display: none !important; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .app-shell { max-width: 1440px; min-height: 100vh; margin: auto; padding: 0 8.25%; }
 .site-header { height: 98px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
 .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-size: 23px; font-weight: 700; letter-spacing: -1.8px; }
 .brand-mark { color: var(--green); font-size: 29px; line-height: 1; font-weight: 400; }
 .brand-accent { color: var(--green); }
-.header-note { color: var(--muted); font-size: 13px; }
-.intro { padding: 28px 0 55px; max-width: 830px; }
-.eyebrow, .step-label, .field-label, .workspace-label, .workspace-index { font-size: 11px; font-weight: 700; letter-spacing: 1.75px; }
-.eyebrow { display: flex; align-items: center; gap: 12px; color: var(--green-dark); }
-.eyebrow-line { display: inline-block; width: 25px; border-top: 2px solid var(--green); }
+.help-button { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #b9cbb4; border-radius: 50%; background: #fffdfa; color: var(--green-dark); font-size: 19px; font-weight: 700; line-height: 1; }
+.help-button:hover { background: var(--light-green); }
+.step-label, .field-label, .workspace-label, .workspace-index { font-size: 11px; font-weight: 700; letter-spacing: 1.75px; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 500; }
-h1 { margin: 0 0 23px; font-size: clamp(48px, 5.35vw, 82px); letter-spacing: -3.9px; line-height: 1.08; }
-h1 em { color: var(--green); font-weight: 500; }
-.intro p { max-width: 585px; margin-bottom: 0; color: #656960; font-size: 16px; line-height: 1.8; }
-.workspace { margin-bottom: 80px; background: var(--panel); border: 1px solid #e7e4db; box-shadow: 0 13px 42px rgba(48, 46, 36, .045); border-radius: 7px; overflow: hidden; }
+.workspace { margin: 36px 0 80px; background: var(--panel); border: 1px solid #e7e4db; box-shadow: 0 13px 42px rgba(48, 46, 36, .045); border-radius: 7px; overflow: hidden; }
 .workspace-topline { display: flex; align-items: center; justify-content: space-between; min-height: 58px; padding: 0 40px; border-bottom: 1px solid var(--line); }
 .workspace-label { display: inline-flex; align-items: center; gap: 9px; color: var(--green-dark); }
 .live-dot { display: inline-block; width: 7px; height: 7px; background: var(--green); border-radius: 50%; }
 .workspace-index { color: #a9aaa3; }
-.setup-view, .mode-panel { padding: 44px 58px 55px; }
-.section-heading, .panel-header { display: flex; justify-content: space-between; align-items: start; }
+.setup-view { padding: 44px 58px 55px; }
+.mode-panel { padding: 30px 58px 45px; }
+.section-heading { display: flex; justify-content: space-between; align-items: start; }
 .step-label { color: var(--green); }
 h2 { margin: 10px 0 10px; font-size: clamp(31px, 3vw, 42px); line-height: 1.2; letter-spacing: -1.2px; }
-.section-heading p, .panel-description { margin-bottom: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 .decorative-asterisk { margin-top: -4px; color: #d1decc; font-size: 78px; line-height: 1; }
 .field-label { display: block; margin: 38px 0 12px; color: #5a6058; }
 textarea { display: block; width: 100%; min-height: 255px; padding: 22px 24px; resize: vertical; border: 1px solid #d9ddd4; border-radius: 4px; background: #fff; color: var(--ink); font-size: 16px; line-height: 1.75; }
@@ -50,11 +46,8 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .mode-tab[aria-selected="true"] { border-bottom-color: var(--green); color: var(--green-dark); }
 .text-button { display: inline-flex; align-items: center; gap: 9px; padding: 8px 0; border: 0; background: transparent; color: var(--green-dark); font-size: 12px; font-weight: 700; }
 .text-button:hover { text-decoration: underline; }
-.panel-symbol { margin-top: 2px; color: #d0dfcc; font-size: 64px; line-height: 1; }
-.panel-description { max-width: 600px; margin: 9px 0 28px; }
 .reading-sheet { border: 1px solid #e4e5dd; border-radius: 4px; background: #fafbf7; }
 .reading-sheet { min-height: 160px; padding: 32px 36px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: 'Playfair Display', Georgia, serif; font-size: 21px; line-height: 1.85; }
-.recitation-label { margin-top: 32px; }
 .recitation-editor { position: relative; height: 330px; overflow: hidden; border: 1px solid #d9ddd4; border-radius: 4px; background: #fff; }
 .recitation-editor:focus-within { border-color: var(--green); outline: 2px solid #d5e5d2; }
 .recitation-highlight, .recitation-input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 22px 24px; border: 0; border-radius: 0; overflow: auto; scrollbar-gutter: stable; white-space: pre-wrap; overflow-wrap: anywhere; font-family: 'DM Sans', Arial, sans-serif; font-size: 16px; font-weight: 400; letter-spacing: normal; line-height: 1.75; tab-size: 8; }
@@ -73,7 +66,17 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .completion-symbol { color: var(--green); font-size: 40px; }
 .completion h3 { margin: 6px 0; font-size: 27px; }
 .completion p { color: var(--muted); font-size: 14px; }
-.site-footer { display: flex; justify-content: space-between; gap: 20px; padding: 0 0 32px; color: #969890; font-size: 11px; }
-.site-footer span:last-child { letter-spacing: 1px; font-weight: 700; }
-@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .header-note { display: none; } .intro { padding: 22px 0 43px; } h1 { letter-spacing: -2.5px; } .workspace-topline { padding: 0 21px; } .setup-view, .mode-panel { padding: 34px 23px 40px; } .decorative-asterisk, .panel-symbol { display: none; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-editor { height: 290px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .site-footer { flex-direction: column; gap: 7px; } }
+.help-dialog { width: min(540px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; overflow: auto; border: 1px solid #e0e2d9; border-radius: 8px; background: var(--panel); color: var(--ink); box-shadow: 0 24px 75px rgba(29, 39, 29, .2); }
+.help-dialog::backdrop { background: rgba(30, 39, 31, .46); backdrop-filter: blur(2px); }
+.help-content { position: relative; padding: 38px 42px 35px; }
+.help-close-button { position: absolute; top: 22px; right: 24px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: #f2f4ee; color: var(--green-dark); font-size: 25px; line-height: 1; }
+.help-close-button:hover { background: var(--light-green); }
+.help-kicker, .help-step span { color: var(--green-dark); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; }
+.help-dialog h2 { margin: 14px 36px 17px 0; font-size: clamp(29px, 4vw, 39px); line-height: 1.18; letter-spacing: -1px; }
+.help-dialog h2 em { color: var(--green); }
+.help-intro, .help-step p { margin: 0; color: #62685e; font-size: 14px; line-height: 1.75; }
+.help-step { margin-top: 23px; padding-top: 20px; border-top: 1px solid var(--line); }
+.help-step p { margin-top: 8px; }
+.help-note { margin: 23px 0 0; color: #8b9187; font-size: 12px; line-height: 1.6; }
+@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .workspace { margin-top: 22px; } .workspace-topline { padding: 0 21px; } .setup-view { padding: 34px 23px 40px; } .mode-panel { padding: 23px 23px 36px; } .decorative-asterisk { display: none; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-editor { height: 290px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .help-content { padding: 31px 26px 28px; } .help-close-button { top: 15px; right: 16px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }

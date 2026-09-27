@@ -12,7 +12,7 @@
     'start-button', 'learn-tab', 'recite-tab', 'learn-panel', 'recite-panel',
     'edit-button', 'go-recite-button', 'learning-text', 'recitation-input',
     'recitation-highlight', 'recitation-feedback', 'completion',
-    'restart-button', 'show-text-button'
+    'restart-button', 'show-text-button', 'help-button', 'close-help-button', 'help-dialog'
   ].map(id => [id, document.getElementById(id)]));
 
   let sourceWords = [];
@@ -386,6 +386,12 @@
   }
 
   elements['source-text'].addEventListener('input', updateCount);
+  elements['help-button'].addEventListener('click', () => elements['help-dialog'].showModal());
+  elements['close-help-button'].addEventListener('click', () => elements['help-dialog'].close());
+  elements['help-dialog'].addEventListener('click', event => {
+    if (event.target === elements['help-dialog']) elements['help-dialog'].close();
+  });
+  elements['help-dialog'].addEventListener('close', () => elements['help-button'].focus());
   elements['start-button'].addEventListener('click', startPractice);
   elements['edit-button'].addEventListener('click', () => {
     elements['practice-view'].hidden = true;
