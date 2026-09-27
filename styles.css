@@ -14,14 +14,10 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visib
 .brand-accent { color: var(--green); }
 .help-button { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #b9cbb4; border-radius: 50%; background: #fffdfa; color: var(--green-dark); font-size: 19px; font-weight: 700; line-height: 1; }
 .help-button:hover { background: var(--light-green); }
-.step-label, .field-label, .workspace-label, .workspace-index { font-size: 11px; font-weight: 700; letter-spacing: 1.75px; }
+.step-label, .field-label { font-size: 11px; font-weight: 700; letter-spacing: 1.75px; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 500; }
 .workspace { margin: 36px 0 80px; background: var(--panel); border: 1px solid #e7e4db; box-shadow: 0 13px 42px rgba(48, 46, 36, .045); border-radius: 7px; overflow: hidden; }
-.workspace-topline { display: flex; align-items: center; justify-content: space-between; min-height: 58px; padding: 0 40px; border-bottom: 1px solid var(--line); }
-.workspace-label { display: inline-flex; align-items: center; gap: 9px; color: var(--green-dark); }
-.live-dot { display: inline-block; width: 7px; height: 7px; background: var(--green); border-radius: 50%; }
-.workspace-index { color: #a9aaa3; }
 .setup-view { padding: 44px 58px 55px; }
 .mode-panel { padding: 30px 58px 45px; }
 .section-heading { display: flex; justify-content: space-between; align-items: start; }
@@ -78,5 +74,5 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .help-step { margin-top: 23px; padding-top: 20px; border-top: 1px solid var(--line); }
 .help-step p { margin-top: 8px; }
 .help-note { margin: 23px 0 0; color: #8b9187; font-size: 12px; line-height: 1.6; }
-@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .workspace { margin-top: 22px; } .workspace-topline { padding: 0 21px; } .setup-view { padding: 34px 23px 40px; } .mode-panel { padding: 23px 23px 36px; } .decorative-asterisk { display: none; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-editor { height: 290px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .help-content { padding: 31px 26px 28px; } .help-close-button { top: 15px; right: 16px; } }
+@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .workspace { margin-top: 22px; } .setup-view { padding: 34px 23px 40px; } .mode-panel { padding: 23px 23px 36px; } .decorative-asterisk { display: none; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-editor { height: 290px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .help-content { padding: 31px 26px 28px; } .help-close-button { top: 15px; right: 16px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
