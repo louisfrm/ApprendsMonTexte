@@ -11,7 +11,7 @@
     'setup-view', 'practice-view', 'source-text', 'source-count', 'setup-error',
     'start-button', 'learn-tab', 'recite-tab', 'learn-panel', 'recite-panel',
     'edit-button', 'go-recite-button', 'learning-text', 'recitation-input',
-    'recitation-highlight', 'recitation-feedback', 'completion',
+    'recitation-highlight', 'recitation-feedback', 'recitation-progress', 'progress-value', 'completion',
     'restart-button', 'show-text-button', 'help-button', 'close-help-button', 'help-dialog'
   ].map(id => [id, document.getElementById(id)]));
 
@@ -216,6 +216,7 @@
     const missing = [];
     const corrections = [];
     const aligned = new Array(referenceCount);
+    let matchedWords = 0;
     let partial = false;
     let i = end;
     let j = writtenCount;
@@ -230,6 +231,7 @@
           else errors.push({ word: actual, expected: expected.display });
         } else {
           aligned[i - 1] = j - 1;
+          matchedWords++;
           const replacement = restoreSpelling(actual.text, expected.text);
           if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
         }
@@ -243,6 +245,7 @@
         const expected = sourceWords.slice(i - span, i).map(word => word.normalized).join('');
         if (written[j - 1].normalized !== expected) partial = true;
         else {
+          matchedWords += span;
           const actual = written[j - 1];
           const reference = sourceText.slice(sourceWords[i - span].start, sourceWords[i - 1].end);
           const replacement = restoreSpelling(actual.text, reference);
@@ -257,6 +260,7 @@
         const normalized = actual.map(word => word.normalized).join('');
         if (normalized !== expected.normalized) partial = true;
         else {
+          matchedWords++;
           const start = actual[0].start;
           const end = actual.at(-1).end;
           const replacement = restoreSpelling(text.slice(start, end), expected.text);
@@ -270,6 +274,7 @@
         const expected = sourceWords.slice(i - span, i).map(word => word.normalized).join('');
         if (actual.normalized !== expected) partial = true;
         else {
+          matchedWords += span;
           const reference = sourceText.slice(sourceWords[i - span].start, sourceWords[i - 1].end);
           const replacement = restoreSpelling(actual.text, reference);
           if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
@@ -295,6 +300,7 @@
 
     return {
       errors: errors.reverse(), missing: missing.reverse(), corrections,
+      matchedWords,
       complete: end === referenceCount && costs[end * width + writtenCount] === 0 && !partial
     };
   }
@@ -334,7 +340,7 @@
   function updateRecitation() {
     let text = elements['recitation-input'].value;
     let written = extractWords(text);
-    let result = composing ? { errors: [], missing: [], corrections: [], complete: false } : compareWords(written, text);
+    let result = composing ? { errors: [], missing: [], corrections: [], matchedWords: 0, complete: false } : compareWords(written, text);
     for (let pass = 0; pass < Math.min(sourceWords.length + 1, 20) && result.corrections.length; pass++) {
       applyCorrections(result.corrections);
       text = elements['recitation-input'].value;
@@ -342,6 +348,11 @@
       result = compareWords(written, text);
     }
     renderHighlights(text, result.errors);
+
+    const percentage = composing ? Number(elements['recitation-progress'].value)
+      : result.complete ? 100 : Math.min(99, Math.round(result.matchedWords / sourceWords.length * 100));
+    elements['recitation-progress'].value = percentage;
+    elements['progress-value'].textContent = `${percentage} %`;
 
     const feedback = elements['recitation-feedback'];
     const lastError = result.errors.at(-1);
