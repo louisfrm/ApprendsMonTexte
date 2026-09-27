@@ -12,7 +12,7 @@
     'start-button', 'learn-tab', 'recite-tab', 'learn-panel', 'recite-panel',
     'edit-button', 'go-recite-button', 'learning-text', 'recitation-input',
     'recitation-highlight', 'recitation-feedback', 'recitation-progress', 'completion',
-    'restart-button', 'show-text-button', 'help-button', 'close-help-button', 'help-dialog'
+    'restart-button', 'help-button', 'close-help-button', 'help-dialog'
   ].map(id => [id, document.getElementById(id)]));
 
   let sourceWords = [];
@@ -411,7 +411,6 @@
   elements['learn-tab'].addEventListener('click', () => setMode('learn'));
   elements['recite-tab'].addEventListener('click', () => setMode('recite'));
   elements['go-recite-button'].addEventListener('click', () => setMode('recite'));
-  elements['show-text-button'].addEventListener('click', () => setMode('learn'));
   elements['restart-button'].addEventListener('click', resetRecitation);
   elements['recitation-input'].addEventListener('input', updateRecitation);
   elements['recitation-input'].addEventListener('scroll', () => {
