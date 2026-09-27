@@ -17,8 +17,22 @@
   let composing = false;
 
   function normalize(word) {
-    return word.normalize('NFD').replace(/\u0302/gu, '').normalize('NFC')
+    return word.normalize('NFD').replace(/\p{M}/gu, '').normalize('NFC')
       .replace(/\p{P}/gu, '').toLocaleLowerCase('fr');
+  }
+
+  function restoreAccents(actual, expected) {
+    const graphemes = /[\p{L}\p{N}]\p{M}*/gu;
+    const expectedGroups = [...expected.normalize('NFD').matchAll(graphemes)].map(match => match[0]);
+    const actualNfd = actual.normalize('NFD');
+    if ([...actualNfd.matchAll(graphemes)].length !== expectedGroups.length) return actual;
+    let index = 0;
+    return actualNfd.replace(graphemes, group => {
+      const base = Array.from(group)[0];
+      const expectedGroup = expectedGroups[index++];
+      const expectedBase = Array.from(expectedGroup)[0];
+      return base + expectedGroup.slice(expectedBase.length);
+    }).normalize('NFC');
   }
 
   function extractWords(text) {
@@ -147,6 +161,7 @@
 
     const errors = [];
     const missing = [];
+    const corrections = [];
     let partial = false;
     let i = end;
     let j = writtenCount;
@@ -159,6 +174,9 @@
         if (actual.normalized !== expected.normalized) {
           if (unfinished && expected.normalized.startsWith(actual.normalized)) partial = true;
           else errors.push({ word: actual, expected: expected.display });
+        } else {
+          const replacement = restoreAccents(actual.text, expected.text);
+          if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
         }
         i--;
         j--;
@@ -169,6 +187,12 @@
         const span = joinedSpans[i * width + j];
         const expected = sourceWords.slice(i - span, i).map(word => word.normalized).join('');
         if (written[j - 1].normalized !== expected) partial = true;
+        else {
+          const actual = written[j - 1];
+          const reference = sourceWords.slice(i - span, i).map(word => word.text).join('');
+          const replacement = restoreAccents(actual.text, reference);
+          if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
+        }
         i -= span;
         j--;
       } else {
@@ -178,9 +202,24 @@
     }
 
     return {
-      errors: errors.reverse(), missing: missing.reverse(),
+      errors: errors.reverse(), missing: missing.reverse(), corrections,
       complete: end === referenceCount && costs[end * width + writtenCount] === 0 && !partial
     };
+  }
+
+  function applyCorrections(corrections) {
+    const editor = elements['recitation-input'];
+    let selectionStart = editor.selectionStart;
+    let selectionEnd = editor.selectionEnd;
+    for (const correction of corrections.sort((a, b) => b.start - a.start)) {
+      const delta = correction.replacement.length - (correction.end - correction.start);
+      const adjusted = position => position >= correction.end ? position + delta
+        : position > correction.start ? correction.start + correction.replacement.length : position;
+      selectionStart = adjusted(selectionStart);
+      selectionEnd = adjusted(selectionEnd);
+      editor.setRangeText(correction.replacement, correction.start, correction.end, 'preserve');
+    }
+    editor.setSelectionRange(selectionStart, selectionEnd);
   }
 
   function renderHighlights(text, errors) {
@@ -201,9 +240,15 @@
   }
 
   function updateRecitation() {
-    const text = elements['recitation-input'].value;
-    const written = extractWords(text);
-    const result = composing ? { errors: [], missing: [], complete: false } : compareWords(written, text.length);
+    let text = elements['recitation-input'].value;
+    let written = extractWords(text);
+    let result = composing ? { errors: [], missing: [], corrections: [], complete: false } : compareWords(written, text.length);
+    if (result.corrections.length) {
+      applyCorrections(result.corrections);
+      text = elements['recitation-input'].value;
+      written = extractWords(text);
+      result = compareWords(written, text.length);
+    }
     renderHighlights(text, result.errors);
 
     const feedback = elements['recitation-feedback'];
