@@ -215,6 +215,7 @@
     const errors = [];
     const missing = [];
     const corrections = [];
+    const aligned = new Array(referenceCount);
     let partial = false;
     let i = end;
     let j = writtenCount;
@@ -228,6 +229,7 @@
           if (unfinished && expected.normalized.startsWith(actual.normalized)) partial = true;
           else errors.push({ word: actual, expected: expected.display });
         } else {
+          aligned[i - 1] = j - 1;
           const replacement = restoreSpelling(actual.text, expected.text);
           if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
         }
@@ -242,7 +244,7 @@
         if (written[j - 1].normalized !== expected) partial = true;
         else {
           const actual = written[j - 1];
-          const reference = sourceWords.slice(i - span, i).map(word => word.text).join('');
+          const reference = sourceText.slice(sourceWords[i - span].start, sourceWords[i - 1].end);
           const replacement = restoreSpelling(actual.text, reference);
           if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
         }
@@ -277,6 +279,17 @@
       } else {
         errors.push({ word: written[j - 1], expected: null });
         j--;
+      }
+    }
+
+    for (let index = 1; index < referenceCount; index++) {
+      const left = aligned[index - 1];
+      const right = aligned[index];
+      if (left === undefined || right !== left + 1) continue;
+      const sourceGap = sourceText.slice(sourceWords[index - 1].end, sourceWords[index].start);
+      const actualGap = text.slice(written[left].end, written[right].start);
+      if (sourceGap !== actualGap && (dashPattern.test(sourceGap) || dashPattern.test(actualGap))) {
+        corrections.push({ start: written[left].end, end: written[right].start, replacement: sourceGap });
       }
     }
 
@@ -322,7 +335,7 @@
     let text = elements['recitation-input'].value;
     let written = extractWords(text);
     let result = composing ? { errors: [], missing: [], corrections: [], complete: false } : compareWords(written, text);
-    if (result.corrections.length) {
+    for (let pass = 0; pass < Math.min(sourceWords.length + 1, 20) && result.corrections.length; pass++) {
       applyCorrections(result.corrections);
       text = elements['recitation-input'].value;
       written = extractWords(text);
