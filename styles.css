@@ -53,8 +53,7 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .recitation-input:focus { outline: none; border: 0; }
 .recitation-input::placeholder { color: #a7aba3; -webkit-text-fill-color: #a7aba3; }
 .recitation-input::selection { background: #cbdcc8; color: transparent; }
-.progress-caption { display: flex; justify-content: space-between; gap: 16px; margin: 19px 0 8px; color: var(--green-dark); font-size: 12px; font-weight: 700; }
-.recitation-progress { display: block; width: 100%; height: 8px; overflow: hidden; border: 0; border-radius: 99px; background: var(--light-green); }
+.recitation-progress { display: block; width: 100%; height: 6px; margin-top: 20px; overflow: hidden; border: 0; border-radius: 99px; background: var(--light-green); }
 .recitation-progress::-webkit-progress-bar { border-radius: 99px; background: var(--light-green); }
 .recitation-progress::-webkit-progress-value { border-radius: 99px; background: var(--green); transition: width .2s ease; }
 .recitation-progress::-moz-progress-bar { border-radius: 99px; background: var(--green); }

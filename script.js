@@ -11,7 +11,7 @@
     'setup-view', 'practice-view', 'source-text', 'source-count', 'setup-error',
     'start-button', 'learn-tab', 'recite-tab', 'learn-panel', 'recite-panel',
     'edit-button', 'go-recite-button', 'learning-text', 'recitation-input',
-    'recitation-highlight', 'recitation-feedback', 'recitation-progress', 'progress-value', 'completion',
+    'recitation-highlight', 'recitation-feedback', 'recitation-progress', 'completion',
     'restart-button', 'show-text-button', 'help-button', 'close-help-button', 'help-dialog'
   ].map(id => [id, document.getElementById(id)]));
 
@@ -352,7 +352,6 @@
     const percentage = composing ? Number(elements['recitation-progress'].value)
       : result.complete ? 100 : Math.min(99, Math.round(result.matchedWords / sourceWords.length * 100));
     elements['recitation-progress'].value = percentage;
-    elements['progress-value'].textContent = `${percentage} %`;
 
     const feedback = elements['recitation-feedback'];
     const lastError = result.errors.at(-1);
