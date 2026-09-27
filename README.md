@@ -10,7 +10,7 @@ Ouvre `index.html` dans un navigateur, colle ton texte, puis clique sur **Commen
 - **Récitation** : le texte à apprendre reste masqué. Écris toute la récitation librement dans une zone de texte. Les mots incorrects sont soulignés dans cette zone et le mot attendu s’affiche juste en dessous. Tu peux corriger n’importe quel passage à tout moment.
 - Le texte saisi reste enregistré dans le stockage local du navigateur. Aucune donnée n’est envoyée à un serveur par l’application.
 
-La casse est tolérée. Toute ponctuation est ignorée pendant la récitation : `n'est`, `nest` et `n’est` sont équivalents. Les accents restent vérifiés.
+La casse est tolérée. Toute ponctuation est ignorée pendant la récitation : `n'est`, `nest` et `n’est` sont équivalents. Les mots avec tirets acceptent aussi des espaces ou aucun séparateur (`sur-le-champ`, `sur le champ`, `surlechamp`). Les accents restent vérifiés.
 
 ## Développement
 

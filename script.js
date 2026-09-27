@@ -2,7 +2,9 @@
   'use strict';
 
   const STORAGE_KEY = 'learnmytext.source.v1';
-  const wordPattern = /[\p{L}\p{N}]+(?:[’'-][\p{L}\p{N}]+)*/gu;
+  const wordPattern = /[\p{L}\p{N}]+(?:[’'][\p{L}\p{N}]+)*/gu;
+  const dashPattern = /[\p{Pd}\u00AD]/u;
+  const dashSeparatorPattern = /^[\p{Zs}\t\p{Pd}\u00AD]+$/u;
   const elements = Object.fromEntries([
     'setup-view', 'practice-view', 'source-text', 'source-count', 'setup-error',
     'start-button', 'learn-tab', 'recite-tab', 'learn-panel', 'recite-panel',
@@ -19,10 +21,25 @@
   }
 
   function extractWords(text) {
-    return [...text.matchAll(wordPattern)].map(match => ({
-      text: match[0], start: match.index, end: match.index + match[0].length,
-      normalized: normalize(match[0])
-    }));
+    const matches = [...text.matchAll(wordPattern)];
+    const words = matches.map((match, index) => {
+      const start = match.index;
+      const previous = matches[index - 1];
+      const gap = previous ? text.slice(previous.index + previous[0].length, start) : '';
+      return {
+        text: match[0], start, end: start + match[0].length,
+        normalized: normalize(match[0]),
+        hyphenBefore: dashPattern.test(gap) && dashSeparatorPattern.test(gap)
+      };
+    });
+    for (let first = 0; first < words.length;) {
+      let last = first;
+      while (last + 1 < words.length && words[last + 1].hyphenBefore) last++;
+      const display = text.slice(words[first].start, words[last].end);
+      for (let index = first; index <= last; index++) words[index].display = display;
+      first = last + 1;
+    }
+    return words;
   }
 
   function updateCount() {
@@ -52,7 +69,8 @@
     const size = (referenceCount + 1) * width;
     const costs = new Uint32Array(size);
     const matches = new Uint32Array(size);
-    const steps = new Uint8Array(size); // 1: compare, 2: missing, 3: extra
+    const steps = new Uint8Array(size); // 1: compare, 2: missing, 3: extra, 4: hyphenated compound
+    const joinedSpans = new Uint16Array(size);
 
     for (let i = 1; i <= referenceCount; i++) {
       costs[i * width] = i;
@@ -90,9 +108,30 @@
           bestStep = 3;
         }
 
+        // A hyphenated compound may also be typed without its dashes or with
+        // spaces: sur-le-champ, sur le champ and surlechamp are equivalent.
+        let joined = sourceWords[i - 1].normalized;
+        let bestSpan = 0;
+        for (let span = 2; span <= i && sourceWords[i - span + 1].hyphenBefore; span++) {
+          joined = sourceWords[i - span].normalized + joined;
+          const joinedExact = joined === written[j - 1].normalized;
+          const joinedPrefix = !joinedExact && unfinished && joined.startsWith(written[j - 1].normalized);
+          if (!joinedExact && !joinedPrefix) continue;
+          const previous = (i - span) * width + j - 1;
+          const joinedCost = costs[previous];
+          const joinedMatches = matches[previous] + (joinedExact ? span * 2 : span);
+          if (joinedCost < bestCost || (joinedCost === bestCost && joinedMatches > bestMatches)) {
+            bestCost = joinedCost;
+            bestMatches = joinedMatches;
+            bestStep = 4;
+            bestSpan = span;
+          }
+        }
+
         costs[cell] = bestCost;
         matches[cell] = bestMatches;
         steps[cell] = bestStep;
+        joinedSpans[cell] = bestSpan;
       }
     }
 
@@ -107,6 +146,7 @@
 
     const errors = [];
     const missing = [];
+    let partial = false;
     let i = end;
     let j = writtenCount;
     while (i > 0 || j > 0) {
@@ -115,22 +155,31 @@
         const actual = written[j - 1];
         const expected = sourceWords[i - 1];
         const unfinished = j === writtenCount && actual.end === textLength;
-        if (actual.normalized !== expected.normalized &&
-            !(unfinished && expected.normalized.startsWith(actual.normalized))) {
-          errors.push({ word: actual, expected: expected.text });
+        if (actual.normalized !== expected.normalized) {
+          if (unfinished && expected.normalized.startsWith(actual.normalized)) partial = true;
+          else errors.push({ word: actual, expected: expected.display });
         }
         i--;
         j--;
       } else if (step === 2) {
-        missing.push(sourceWords[i - 1].text);
+        missing.push(sourceWords[i - 1].display);
         i--;
+      } else if (step === 4) {
+        const span = joinedSpans[i * width + j];
+        const expected = sourceWords.slice(i - span, i).map(word => word.normalized).join('');
+        if (written[j - 1].normalized !== expected) partial = true;
+        i -= span;
+        j--;
       } else {
         errors.push({ word: written[j - 1], expected: null });
         j--;
       }
     }
 
-    return { errors: errors.reverse(), missing: missing.reverse() };
+    return {
+      errors: errors.reverse(), missing: missing.reverse(),
+      complete: end === referenceCount && costs[end * width + writtenCount] === 0 && !partial
+    };
   }
 
   function renderHighlights(text, errors) {
@@ -153,7 +202,7 @@
   function updateRecitation() {
     const text = elements['recitation-input'].value;
     const written = extractWords(text);
-    const result = composing ? { errors: [], missing: [] } : compareWords(written, text.length);
+    const result = composing ? { errors: [], missing: [], complete: false } : compareWords(written, text.length);
     renderHighlights(text, result.errors);
 
     const feedback = elements['recitation-feedback'];
@@ -171,8 +220,7 @@
       feedback.classList.remove('has-error');
     }
 
-    elements['completion'].hidden = composing || written.length !== sourceWords.length ||
-      !written.every((word, index) => word.normalized === sourceWords[index].normalized);
+    elements['completion'].hidden = !result.complete;
   }
 
   function resetRecitation() {
