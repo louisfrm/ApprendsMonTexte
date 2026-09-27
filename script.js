@@ -6,22 +6,23 @@
   const elements = Object.fromEntries([
     'setup-view', 'practice-view', 'source-text', 'source-count', 'setup-error',
     'start-button', 'learn-tab', 'recite-tab', 'learn-panel', 'recite-panel',
-    'edit-button', 'go-recite-button', 'learning-text', 'masked-text',
-    'progress-label', 'progress-fill', 'answer-area', 'answer-input',
-    'check-button', 'feedback', 'completion', 'restart-button', 'show-text-button'
+    'edit-button', 'go-recite-button', 'learning-text', 'recitation-input',
+    'recitation-highlight', 'recitation-feedback', 'completion',
+    'restart-button', 'show-text-button'
   ].map(id => [id, document.getElementById(id)]));
 
-  let source = '';
-  let words = [];
-  let currentIndex = 0;
-  let mistakeShownFor = -1;
-
-  function extractWords(text) {
-    return [...text.matchAll(wordPattern)].map(match => ({ text: match[0], index: match.index }));
-  }
+  let sourceWords = [];
+  let composing = false;
 
   function normalize(word) {
     return word.normalize('NFC').replace(/\p{P}/gu, '').toLocaleLowerCase('fr');
+  }
+
+  function extractWords(text) {
+    return [...text.matchAll(wordPattern)].map(match => ({
+      text: match[0], start: match.index, end: match.index + match[0].length,
+      normalized: normalize(match[0])
+    }));
   }
 
   function updateCount() {
@@ -39,59 +40,145 @@
     elements['recite-tab'].setAttribute('aria-selected', String(!learning));
     elements['learn-tab'].tabIndex = learning ? 0 : -1;
     elements['recite-tab'].tabIndex = learning ? -1 : 0;
-    if (!learning && currentIndex < words.length) elements['answer-input'].focus();
+    if (!learning) elements['recitation-input'].focus();
   }
 
-  function renderMaskedText() {
-    const fragment = document.createDocumentFragment();
-    words.forEach((word, index) => {
-      if (index > 0 && /\n/.test(source.slice(words[index - 1].index + words[index - 1].text.length, word.index))) {
-        const lineBreak = document.createElement('span');
-        lineBreak.className = 'mask-break';
-        lineBreak.setAttribute('aria-hidden', 'true');
-        fragment.append(lineBreak);
+  // Word alignment prevents one omitted or extra word from marking every
+  // following word as incorrect.
+  function compareWords(written, textLength) {
+    const referenceCount = sourceWords.length;
+    const writtenCount = written.length;
+    const width = writtenCount + 1;
+    const size = (referenceCount + 1) * width;
+    const costs = new Uint32Array(size);
+    const matches = new Uint32Array(size);
+    const steps = new Uint8Array(size); // 1: compare, 2: missing, 3: extra
+
+    for (let i = 1; i <= referenceCount; i++) {
+      costs[i * width] = i;
+      steps[i * width] = 2;
+    }
+    for (let j = 1; j <= writtenCount; j++) {
+      costs[j] = j;
+      steps[j] = 3;
+    }
+
+    for (let i = 1; i <= referenceCount; i++) {
+      for (let j = 1; j <= writtenCount; j++) {
+        const cell = i * width + j;
+        const before = cell - width - 1;
+        const exact = sourceWords[i - 1].normalized === written[j - 1].normalized;
+        const unfinished = j === writtenCount && written[j - 1].end === textLength;
+        const prefix = !exact && unfinished && sourceWords[i - 1].normalized.startsWith(written[j - 1].normalized);
+        let bestCost = costs[before] + (exact || prefix ? 0 : 1);
+        let bestMatches = matches[before] + (exact ? 2 : prefix ? 1 : 0);
+        let bestStep = 1;
+
+        const missingCost = costs[cell - width] + 1;
+        const missingMatches = matches[cell - width];
+        if (missingCost < bestCost || (missingCost === bestCost && missingMatches > bestMatches)) {
+          bestCost = missingCost;
+          bestMatches = missingMatches;
+          bestStep = 2;
+        }
+
+        const extraCost = costs[cell - 1] + 1;
+        const extraMatches = matches[cell - 1];
+        if (extraCost < bestCost || (extraCost === bestCost && extraMatches > bestMatches)) {
+          bestCost = extraCost;
+          bestMatches = extraMatches;
+          bestStep = 3;
+        }
+
+        costs[cell] = bestCost;
+        matches[cell] = bestMatches;
+        steps[cell] = bestStep;
       }
-      const token = document.createElement('span');
-      token.className = 'mask-token ' + (index < currentIndex ? 'is-done' : index === currentIndex ? 'is-hidden is-current' : 'is-hidden');
-      token.textContent = index < currentIndex ? word.text : '';
-      token.setAttribute('aria-label', index < currentIndex ? word.text : index === currentIndex ? 'mot en cours' : 'mot masqué');
-      fragment.append(token);
-    });
-    elements['masked-text'].replaceChildren(fragment);
+    }
+
+    // The unspoken end of the reference is free: compare only what is typed.
+    let end = 0;
+    for (let i = 1; i <= referenceCount; i++) {
+      const candidate = i * width + writtenCount;
+      const previous = end * width + writtenCount;
+      if (costs[candidate] < costs[previous] ||
+          (costs[candidate] === costs[previous] && matches[candidate] >= matches[previous])) end = i;
+    }
+
+    const errors = [];
+    const missing = [];
+    let i = end;
+    let j = writtenCount;
+    while (i > 0 || j > 0) {
+      const step = steps[i * width + j];
+      if (step === 1) {
+        const actual = written[j - 1];
+        const expected = sourceWords[i - 1];
+        const unfinished = j === writtenCount && actual.end === textLength;
+        if (actual.normalized !== expected.normalized &&
+            !(unfinished && expected.normalized.startsWith(actual.normalized))) {
+          errors.push({ word: actual, expected: expected.text });
+        }
+        i--;
+        j--;
+      } else if (step === 2) {
+        missing.push(sourceWords[i - 1].text);
+        i--;
+      } else {
+        errors.push({ word: written[j - 1], expected: null });
+        j--;
+      }
+    }
+
+    return { errors: errors.reverse(), missing: missing.reverse() };
   }
 
-  function updateProgress() {
-    const total = words.length;
-    elements['progress-label'].textContent = `${currentIndex} / ${total} mot${total > 1 ? 's' : ''}`;
-    const percent = total ? Math.round(currentIndex / total * 100) : 0;
-    elements['progress-fill'].style.width = `${percent}%`;
-    elements['progress-fill'].parentElement.setAttribute('aria-valuenow', String(percent));
-    elements['answer-area'].hidden = currentIndex >= total;
-    elements['completion'].hidden = currentIndex < total;
+  function renderHighlights(text, errors) {
+    const fragment = document.createDocumentFragment();
+    let position = 0;
+    for (const error of errors) {
+      fragment.append(document.createTextNode(text.slice(position, error.word.start)));
+      const marker = document.createElement('mark');
+      marker.className = 'incorrect-word';
+      marker.textContent = text.slice(error.word.start, error.word.end);
+      fragment.append(marker);
+      position = error.word.end;
+    }
+    fragment.append(document.createTextNode(text.slice(position) + '\u200b'));
+    elements['recitation-highlight'].replaceChildren(fragment);
+    elements['recitation-highlight'].scrollTop = elements['recitation-input'].scrollTop;
+    elements['recitation-highlight'].scrollLeft = elements['recitation-input'].scrollLeft;
   }
 
-  function clearFeedback() {
-    elements['feedback'].textContent = '';
-    elements['feedback'].classList.remove('is-error');
-  }
+  function updateRecitation() {
+    const text = elements['recitation-input'].value;
+    const written = extractWords(text);
+    const result = composing ? { errors: [], missing: [] } : compareWords(written, text.length);
+    renderHighlights(text, result.errors);
 
-  function showMistake() {
-    if (mistakeShownFor === currentIndex) return;
-    mistakeShownFor = currentIndex;
-    const expected = words[currentIndex]?.text;
-    if (!expected) return;
-    elements['feedback'].classList.add('is-error');
-    elements['feedback'].replaceChildren('Il y a une faute. Le bon mot est « ', Object.assign(document.createElement('strong'), { textContent: expected }), ' ».');
+    const feedback = elements['recitation-feedback'];
+    const lastError = result.errors.at(-1);
+    if (lastError) {
+      feedback.textContent = lastError.expected
+        ? `« ${lastError.word.text} » → « ${lastError.expected} »`
+        : `« ${lastError.word.text} » : mot en trop.`;
+      feedback.classList.add('has-error');
+    } else if (result.missing.length) {
+      feedback.textContent = `Mot manquant : « ${result.missing[0]} ».`;
+      feedback.classList.add('has-error');
+    } else {
+      feedback.textContent = '';
+      feedback.classList.remove('has-error');
+    }
+
+    elements['completion'].hidden = composing || written.length !== sourceWords.length ||
+      !written.every((word, index) => word.normalized === sourceWords[index].normalized);
   }
 
   function resetRecitation() {
-    currentIndex = 0;
-    mistakeShownFor = -1;
-    elements['answer-input'].value = '';
-    clearFeedback();
-    renderMaskedText();
-    updateProgress();
-    if (!elements['recite-panel'].hidden) elements['answer-input'].focus();
+    elements['recitation-input'].value = '';
+    updateRecitation();
+    if (!elements['recite-panel'].hidden) elements['recitation-input'].focus();
   }
 
   function startPractice() {
@@ -103,33 +190,12 @@
       elements['source-text'].focus();
       return;
     }
-    source = text;
-    words = parsed;
+    sourceWords = parsed;
     elements['learning-text'].textContent = text;
     elements['setup-view'].hidden = true;
     elements['practice-view'].hidden = false;
     resetRecitation();
     setMode('learn');
-  }
-
-  function checkAnswer() {
-    if (currentIndex >= words.length) return;
-    const answer = elements['answer-input'].value.trim();
-    if (!answer) return;
-    const normalizedAnswer = normalize(answer);
-    if (!normalizedAnswer) return;
-    if (normalizedAnswer !== normalize(words[currentIndex].text)) {
-      showMistake();
-      elements['answer-input'].select();
-      return;
-    }
-    currentIndex += 1;
-    mistakeShownFor = -1;
-    elements['answer-input'].value = '';
-    clearFeedback();
-    renderMaskedText();
-    updateProgress();
-    if (currentIndex < words.length) elements['answer-input'].focus();
   }
 
   elements['source-text'].addEventListener('input', updateCount);
@@ -144,19 +210,13 @@
   elements['go-recite-button'].addEventListener('click', () => setMode('recite'));
   elements['show-text-button'].addEventListener('click', () => setMode('learn'));
   elements['restart-button'].addEventListener('click', resetRecitation);
-  elements['check-button'].addEventListener('click', checkAnswer);
-  elements['answer-input'].addEventListener('keydown', event => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      checkAnswer();
-    }
+  elements['recitation-input'].addEventListener('input', updateRecitation);
+  elements['recitation-input'].addEventListener('scroll', () => {
+    elements['recitation-highlight'].scrollTop = elements['recitation-input'].scrollTop;
+    elements['recitation-highlight'].scrollLeft = elements['recitation-input'].scrollLeft;
   });
-  elements['answer-input'].addEventListener('input', () => {
-    if (currentIndex >= words.length || mistakeShownFor === currentIndex) return;
-    const typed = normalize(elements['answer-input'].value.trim());
-    const expected = normalize(words[currentIndex].text);
-    if (typed && !expected.startsWith(typed)) showMistake();
-  });
+  elements['recitation-input'].addEventListener('compositionstart', () => { composing = true; });
+  elements['recitation-input'].addEventListener('compositionend', () => { composing = false; updateRecitation(); });
 
   try { elements['source-text'].value = localStorage.getItem(STORAGE_KEY) || ''; } catch { /* Storage may be unavailable. */ }
   updateCount();

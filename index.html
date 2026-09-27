@@ -80,30 +80,19 @@
                 </div>
                 <span class="panel-symbol" aria-hidden="true">◌</span>
               </div>
-              <p class="panel-description">Tape les mots dans l’ordre. Appuie sur espace ou Entrée après chaque mot. Une erreur ? Le mot attendu s’affiche.</p>
+              <p class="panel-description">Écris librement dans le champ. Les mots incorrects sont soulignés ; la ponctuation est ignorée.</p>
 
-              <div class="progress-heading">
-                <span>TA PROGRESSION</span>
-                <strong id="progress-label">0 / 0 mots</strong>
+              <label class="field-label recitation-label" for="recitation-input">TA RÉCITATION</label>
+              <div class="recitation-editor">
+                <div id="recitation-highlight" class="recitation-highlight" aria-hidden="true"></div>
+                <textarea id="recitation-input" class="recitation-input" spellcheck="false" autocomplete="off" placeholder="Commence à écrire ton texte ici…" aria-describedby="recitation-feedback"></textarea>
               </div>
-              <div class="progress-track" role="progressbar" aria-label="Progression de la récitation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
-
-              <div id="masked-text" class="masked-sheet" aria-label="Texte masqué"></div>
-
-              <div id="answer-area" class="answer-area">
-                <label class="field-label" for="answer-input">LE PROCHAIN MOT</label>
-                <div class="answer-row">
-                  <input id="answer-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Écris le mot suivant…" aria-describedby="answer-help feedback" />
-                  <button id="check-button" class="check-button" type="button" aria-label="Valider le mot">↵</button>
-                </div>
-                <p id="answer-help" class="answer-help">Espace ou Entrée pour valider</p>
-                <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
-              </div>
+              <p id="recitation-feedback" class="recitation-feedback" role="status" aria-live="polite"></p>
 
               <div id="completion" class="completion" hidden>
                 <span class="completion-symbol" aria-hidden="true">✳</span>
                 <h3>Bravo, c’est dans la boîte !</h3>
-                <p>Tu as récité tout ton texte. Une autre fois pour le plaisir ?</p>
+                <p>Tu as récité tout ton texte.</p>
               </div>
 
               <div class="practice-actions">
