@@ -17,17 +17,14 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visib
 .github-link:hover { background: var(--light-green); }
 .help-button { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #b9cbb4; border-radius: 50%; background: #fffdfa; color: var(--green-dark); font-size: 19px; font-weight: 700; line-height: 1; }
 .help-button:hover { background: var(--light-green); }
-.step-label, .field-label { font-size: 11px; font-weight: 700; letter-spacing: 1.75px; }
+.field-label { font-size: 11px; font-weight: 700; letter-spacing: 1.75px; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 500; }
 .workspace { margin: 36px 0 80px; background: var(--panel); border: 1px solid #e7e4db; box-shadow: 0 13px 42px rgba(48, 46, 36, .045); border-radius: 7px; overflow: hidden; }
-.setup-view { padding: 44px 58px 55px; }
+.setup-view { padding: 30px 58px 45px; }
 .mode-panel { padding: 30px 58px 45px; }
-.section-heading { display: flex; justify-content: space-between; align-items: start; }
-.step-label { color: var(--green); }
 h2 { margin: 10px 0 10px; font-size: clamp(31px, 3vw, 42px); line-height: 1.2; letter-spacing: -1.2px; }
-.decorative-asterisk { margin-top: -4px; color: #d1decc; font-size: 78px; line-height: 1; }
-.field-label { display: block; margin: 38px 0 12px; color: #5a6058; }
+.field-label { display: block; margin: 0 0 12px; color: #5a6058; }
 textarea { display: block; width: 100%; min-height: 255px; padding: 22px 24px; resize: vertical; border: 1px solid #d9ddd4; border-radius: 4px; background: #fff; color: var(--ink); font-size: 16px; line-height: 1.75; }
 textarea::placeholder, input::placeholder { color: #a7aba3; }
 textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5e5d2; outline-offset: 0; }
@@ -81,6 +78,6 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .help-step { margin-top: 23px; padding-top: 20px; border-top: 1px solid var(--line); }
 .help-step p { margin-top: 8px; }
 .help-note { margin: 23px 0 0; color: #8b9187; font-size: 12px; line-height: 1.6; }
-@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .workspace { margin-top: 22px; } .setup-view { padding: 34px 23px 40px; } .mode-panel { padding: 23px 23px 36px; } .decorative-asterisk { display: none; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-editor { height: 290px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .help-content { padding: 31px 26px 28px; } .help-close-button { top: 15px; right: 16px; } }
+@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .workspace { margin-top: 22px; } .setup-view { padding: 23px 23px 36px; } .mode-panel { padding: 23px 23px 36px; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-editor { height: 290px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .help-content { padding: 31px 26px 28px; } .help-close-button { top: 15px; right: 16px; } }
 @media (max-width: 380px) { .brand { font-size: 18px; } .header-actions { gap: 6px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
