@@ -5,6 +5,8 @@
   const wordPattern = /[\p{L}\p{N}][\p{L}\p{N}\p{M}]*(?:[’'][\p{L}\p{N}][\p{L}\p{N}\p{M}]*)*/gu;
   const dashPattern = /[\p{Pd}\u00AD]/u;
   const dashSeparatorPattern = /^[\p{Zs}\t\p{Pd}\u00AD]+$/u;
+  const apostropheSeparatorPattern = /^[\p{Zs}\t’']+$/u;
+  const spaceSeparatorPattern = /^[\p{Zs}\t]+$/u;
   const elements = Object.fromEntries([
     'setup-view', 'practice-view', 'source-text', 'source-count', 'setup-error',
     'start-button', 'learn-tab', 'recite-tab', 'learn-panel', 'recite-panel',
@@ -14,6 +16,7 @@
   ].map(id => [id, document.getElementById(id)]));
 
   let sourceWords = [];
+  let sourceText = '';
   let composing = false;
 
   function normalize(word) {
@@ -21,15 +24,14 @@
       .replace(/\p{P}/gu, '').toLocaleLowerCase('fr');
   }
 
-  function restoreAccents(actual, expected) {
+  function restoreSpelling(actual, expected) {
     const graphemes = /[\p{L}\p{N}]\p{M}*/gu;
+    const actualGroups = [...actual.normalize('NFD').matchAll(graphemes)].map(match => match[0]);
     const expectedGroups = [...expected.normalize('NFD').matchAll(graphemes)].map(match => match[0]);
-    const actualNfd = actual.normalize('NFD');
-    if ([...actualNfd.matchAll(graphemes)].length !== expectedGroups.length) return actual;
+    if (actualGroups.length !== expectedGroups.length) return actual;
     let index = 0;
-    return actualNfd.replace(graphemes, group => {
-      const base = Array.from(group)[0];
-      const expectedGroup = expectedGroups[index++];
+    return expected.normalize('NFD').replace(graphemes, expectedGroup => {
+      const base = Array.from(actualGroups[index++])[0];
       const expectedBase = Array.from(expectedGroup)[0];
       return base + expectedGroup.slice(expectedBase.length);
     }).normalize('NFC');
@@ -44,7 +46,9 @@
       return {
         text: match[0], start, end: start + match[0].length,
         normalized: normalize(match[0]),
-        hyphenBefore: dashPattern.test(gap) && dashSeparatorPattern.test(gap)
+        hyphenBefore: dashPattern.test(gap) && dashSeparatorPattern.test(gap),
+        apostropheJoinBefore: apostropheSeparatorPattern.test(gap),
+        spaceBefore: spaceSeparatorPattern.test(gap)
       };
     });
     for (let first = 0; first < words.length;) {
@@ -77,15 +81,18 @@
 
   // Word alignment prevents one omitted or extra word from marking every
   // following word as incorrect.
-  function compareWords(written, textLength) {
+  function compareWords(written, text) {
+    const textLength = text.length;
     const referenceCount = sourceWords.length;
     const writtenCount = written.length;
     const width = writtenCount + 1;
     const size = (referenceCount + 1) * width;
     const costs = new Uint32Array(size);
     const matches = new Uint32Array(size);
-    const steps = new Uint8Array(size); // 1: compare, 2: missing, 3: extra, 4: hyphenated compound
+    const steps = new Uint8Array(size); // 1: compare, 2: missing, 3: extra, 4: hyphen, 5: split apostrophe, 6: extra apostrophe
     const joinedSpans = new Uint16Array(size);
+    const splitSpans = new Uint16Array(size);
+    const spacedSpans = new Uint16Array(size);
 
     for (let i = 1; i <= referenceCount; i++) {
       costs[i * width] = i;
@@ -143,10 +150,56 @@
           }
         }
 
+        // An apostrophe may have been replaced with a space: c'est / c est.
+        let bestSplitSpan = 0;
+        if (/[’']/.test(sourceWords[i - 1].text)) {
+          const maxSpan = sourceWords[i - 1].text.match(/[’']/g).length + 1;
+          let joinedWritten = written[j - 1].normalized;
+          for (let span = 2; span <= Math.min(j, maxSpan) && written[j - span + 1].apostropheJoinBefore; span++) {
+            joinedWritten = written[j - span].normalized + joinedWritten;
+            const joinedExact = joinedWritten === sourceWords[i - 1].normalized;
+            const joinedPrefix = !joinedExact && unfinished && sourceWords[i - 1].normalized.startsWith(joinedWritten);
+            if (!joinedExact && !joinedPrefix) continue;
+            const previous = (i - 1) * width + j - span;
+            const splitCost = costs[previous];
+            const splitMatches = matches[previous] + (joinedExact ? span * 2 : span);
+            if (splitCost < bestCost || (splitCost === bestCost && splitMatches > bestMatches)) {
+              bestCost = splitCost;
+              bestMatches = splitMatches;
+              bestStep = 5;
+              bestSplitSpan = span;
+            }
+          }
+        }
+
+        // Likewise, an apostrophe typed between separate words is removed.
+        let bestSpacedSpan = 0;
+        if (/[’']/.test(written[j - 1].text)) {
+          const maxSpan = written[j - 1].text.match(/[’']/g).length + 1;
+          let joinedSource = sourceWords[i - 1].normalized;
+          for (let span = 2; span <= Math.min(i, maxSpan) && sourceWords[i - span + 1].spaceBefore; span++) {
+            joinedSource = sourceWords[i - span].normalized + joinedSource;
+            const joinedExact = joinedSource === written[j - 1].normalized;
+            const joinedPrefix = !joinedExact && unfinished && joinedSource.startsWith(written[j - 1].normalized);
+            if (!joinedExact && !joinedPrefix) continue;
+            const previous = (i - span) * width + j - 1;
+            const spacedCost = costs[previous];
+            const spacedMatches = matches[previous] + (joinedExact ? span * 2 : span);
+            if (spacedCost < bestCost || (spacedCost === bestCost && spacedMatches > bestMatches)) {
+              bestCost = spacedCost;
+              bestMatches = spacedMatches;
+              bestStep = 6;
+              bestSpacedSpan = span;
+            }
+          }
+        }
+
         costs[cell] = bestCost;
         matches[cell] = bestMatches;
         steps[cell] = bestStep;
         joinedSpans[cell] = bestSpan;
+        splitSpans[cell] = bestSplitSpan;
+        spacedSpans[cell] = bestSpacedSpan;
       }
     }
 
@@ -175,7 +228,7 @@
           if (unfinished && expected.normalized.startsWith(actual.normalized)) partial = true;
           else errors.push({ word: actual, expected: expected.display });
         } else {
-          const replacement = restoreAccents(actual.text, expected.text);
+          const replacement = restoreSpelling(actual.text, expected.text);
           if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
         }
         i--;
@@ -190,7 +243,33 @@
         else {
           const actual = written[j - 1];
           const reference = sourceWords.slice(i - span, i).map(word => word.text).join('');
-          const replacement = restoreAccents(actual.text, reference);
+          const replacement = restoreSpelling(actual.text, reference);
+          if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
+        }
+        i -= span;
+        j--;
+      } else if (step === 5) {
+        const span = splitSpans[i * width + j];
+        const actual = written.slice(j - span, j);
+        const expected = sourceWords[i - 1];
+        const normalized = actual.map(word => word.normalized).join('');
+        if (normalized !== expected.normalized) partial = true;
+        else {
+          const start = actual[0].start;
+          const end = actual.at(-1).end;
+          const replacement = restoreSpelling(text.slice(start, end), expected.text);
+          if (replacement !== text.slice(start, end)) corrections.push({ start, end, replacement });
+        }
+        i--;
+        j -= span;
+      } else if (step === 6) {
+        const span = spacedSpans[i * width + j];
+        const actual = written[j - 1];
+        const expected = sourceWords.slice(i - span, i).map(word => word.normalized).join('');
+        if (actual.normalized !== expected) partial = true;
+        else {
+          const reference = sourceText.slice(sourceWords[i - span].start, sourceWords[i - 1].end);
+          const replacement = restoreSpelling(actual.text, reference);
           if (replacement !== actual.text) corrections.push({ start: actual.start, end: actual.end, replacement });
         }
         i -= span;
@@ -242,12 +321,12 @@
   function updateRecitation() {
     let text = elements['recitation-input'].value;
     let written = extractWords(text);
-    let result = composing ? { errors: [], missing: [], corrections: [], complete: false } : compareWords(written, text.length);
+    let result = composing ? { errors: [], missing: [], corrections: [], complete: false } : compareWords(written, text);
     if (result.corrections.length) {
       applyCorrections(result.corrections);
       text = elements['recitation-input'].value;
       written = extractWords(text);
-      result = compareWords(written, text.length);
+      result = compareWords(written, text);
     }
     renderHighlights(text, result.errors);
 
@@ -285,6 +364,7 @@
       return;
     }
     sourceWords = parsed;
+    sourceText = text;
     elements['learning-text'].textContent = text;
     elements['setup-view'].hidden = true;
     elements['practice-view'].hidden = false;
