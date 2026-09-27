@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f3eb" />
+    <meta name="description" content="Apprends un texte de théâtre, puis récite-le mot après mot." />
+    <title>Learn My Text — Apprendre et réciter</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="Learn My Text, accueil">
+          <span class="brand-mark" aria-hidden="true">✳</span>
+          <span>learn<span class="brand-accent">my</span>text</span>
+        </a>
+        <span class="header-note">Ton texte. À ton rythme.</span>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <div class="eyebrow"><span class="eyebrow-line"></span> LE STUDIO DE MÉMORISATION</div>
+          <h1 id="page-title">Apprends tes mots.<br /><em>Entre en scène.</em></h1>
+          <p>Colle ton texte de théâtre, lis-le autant de fois que tu veux, puis récite-le sans le voir. Si tu te trompes, le bon mot apparaît aussitôt.</p>
+        </section>
+
+        <section class="workspace" aria-label="Espace de travail">
+          <div class="workspace-topline">
+            <span class="workspace-label"><span class="live-dot" aria-hidden="true"></span> TON ESPACE DE RÉPÉTITION</span>
+            <span class="workspace-index">01 / 02</span>
+          </div>
+
+          <div id="setup-view" class="setup-view">
+            <div class="section-heading">
+              <div>
+                <span class="step-label">ÉTAPE 01</span>
+                <h2>Ton texte, ici.</h2>
+                <p>Une réplique, une scène ou un monologue : tout fonctionne.</p>
+              </div>
+              <span class="decorative-asterisk" aria-hidden="true">✳</span>
+            </div>
+
+            <label class="field-label" for="source-text">TEXTE À APPRENDRE</label>
+            <textarea id="source-text" spellcheck="false" placeholder="Colle ton texte ici…&#10;&#10;Par exemple :&#10;Être, ou ne pas être, telle est la question."></textarea>
+            <div class="editor-footer">
+              <span id="source-count">0 mot</span>
+              <span>Enregistré uniquement dans ce navigateur</span>
+            </div>
+            <p id="setup-error" class="form-error" role="alert" hidden></p>
+            <button id="start-button" class="primary-button" type="button">Commencer à apprendre <span aria-hidden="true">↗</span></button>
+          </div>
+
+          <div id="practice-view" class="practice-view" hidden>
+            <div class="practice-toolbar">
+              <div class="mode-tabs" role="tablist" aria-label="Mode d'apprentissage">
+                <button id="learn-tab" class="mode-tab" type="button" role="tab" aria-selected="true" aria-controls="learn-panel">01 <span>Apprentissage</span></button>
+                <button id="recite-tab" class="mode-tab" type="button" role="tab" aria-selected="false" aria-controls="recite-panel">02 <span>Récitation</span></button>
+              </div>
+              <button id="edit-button" class="text-button" type="button">Modifier le texte <span aria-hidden="true">↗</span></button>
+            </div>
+
+            <section id="learn-panel" class="mode-panel" role="tabpanel" aria-labelledby="learn-tab">
+              <div class="panel-header">
+                <div>
+                  <span class="step-label">ÉTAPE 01 · LIRE</span>
+                  <h2>Fais connaissance<br />avec ton texte.</h2>
+                </div>
+                <span class="panel-symbol" aria-hidden="true">✦</span>
+              </div>
+              <p class="panel-description">Lis-le à voix haute, repère son rythme, puis passe en récitation quand tu es prêt·e.</p>
+              <div id="learning-text" class="reading-sheet"></div>
+              <button id="go-recite-button" class="primary-button" type="button">Je suis prêt·e à réciter <span aria-hidden="true">↗</span></button>
+            </section>
+
+            <section id="recite-panel" class="mode-panel" role="tabpanel" aria-labelledby="recite-tab" hidden>
+              <div class="panel-header">
+                <div>
+                  <span class="step-label">ÉTAPE 02 · RÉCITER</span>
+                  <h2>À toi de jouer.</h2>
+                </div>
+                <span class="panel-symbol" aria-hidden="true">◌</span>
+              </div>
+              <p class="panel-description">Tape les mots dans l’ordre. Appuie sur espace ou Entrée après chaque mot. Une erreur ? Le mot attendu s’affiche.</p>
+
+              <div class="progress-heading">
+                <span>TA PROGRESSION</span>
+                <strong id="progress-label">0 / 0 mots</strong>
+              </div>
+              <div class="progress-track" role="progressbar" aria-label="Progression de la récitation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
+
+              <div id="masked-text" class="masked-sheet" aria-label="Texte masqué"></div>
+
+              <div id="answer-area" class="answer-area">
+                <label class="field-label" for="answer-input">LE PROCHAIN MOT</label>
+                <div class="answer-row">
+                  <input id="answer-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Écris le mot suivant…" aria-describedby="answer-help feedback" />
+                  <button id="check-button" class="check-button" type="button" aria-label="Valider le mot">↵</button>
+                </div>
+                <p id="answer-help" class="answer-help">Espace ou Entrée pour valider</p>
+                <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+              </div>
+
+              <div id="completion" class="completion" hidden>
+                <span class="completion-symbol" aria-hidden="true">✳</span>
+                <h3>Bravo, c’est dans la boîte !</h3>
+                <p>Tu as récité tout ton texte. Une autre fois pour le plaisir ?</p>
+              </div>
+
+              <div class="practice-actions">
+                <button id="restart-button" class="secondary-button" type="button">Recommencer <span aria-hidden="true">↺</span></button>
+                <button id="show-text-button" class="text-button" type="button">Revoir le texte <span aria-hidden="true">↗</span></button>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer"><span>Fait pour apprendre les mots qui comptent.</span><span>LEARN MY TEXT © 2026</span></footer>
+    </div>
+  </body>
+</html>
