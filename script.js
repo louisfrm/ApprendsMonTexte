@@ -2,7 +2,7 @@
   'use strict';
 
   const STORAGE_KEY = 'learnmytext.source.v1';
-  const wordPattern = /[\p{L}\p{N}]+(?:[’'][\p{L}\p{N}]+)*/gu;
+  const wordPattern = /[\p{L}\p{N}][\p{L}\p{N}\p{M}]*(?:[’'][\p{L}\p{N}][\p{L}\p{N}\p{M}]*)*/gu;
   const dashPattern = /[\p{Pd}\u00AD]/u;
   const dashSeparatorPattern = /^[\p{Zs}\t\p{Pd}\u00AD]+$/u;
   const elements = Object.fromEntries([
@@ -17,7 +17,8 @@
   let composing = false;
 
   function normalize(word) {
-    return word.normalize('NFC').replace(/\p{P}/gu, '').toLocaleLowerCase('fr');
+    return word.normalize('NFD').replace(/\u0302/gu, '').normalize('NFC')
+      .replace(/\p{P}/gu, '').toLocaleLowerCase('fr');
   }
 
   function extractWords(text) {
