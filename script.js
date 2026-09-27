@@ -79,10 +79,18 @@
     if (!learning) elements['recitation-input'].focus();
   }
 
+  function isUnfinishedWord(word, index, count, text) {
+    return index === count && !/\s/u.test(text.slice(word.end));
+  }
+
+  function isPendingApostropheSplit(actual, expected, index, count) {
+    return index === count && /[’']/.test(expected.text) &&
+      normalize(expected.text.split(/[’']/)[0]) === actual.normalized;
+  }
+
   // Word alignment prevents one omitted or extra word from marking every
   // following word as incorrect.
   function compareWords(written, text) {
-    const textLength = text.length;
     const referenceCount = sourceWords.length;
     const writtenCount = written.length;
     const width = writtenCount + 1;
@@ -108,8 +116,9 @@
         const cell = i * width + j;
         const before = cell - width - 1;
         const exact = sourceWords[i - 1].normalized === written[j - 1].normalized;
-        const unfinished = j === writtenCount && written[j - 1].end === textLength;
-        const prefix = !exact && unfinished && sourceWords[i - 1].normalized.startsWith(written[j - 1].normalized);
+        const unfinished = isUnfinishedWord(written[j - 1], j, writtenCount, text);
+        const pendingSplit = isPendingApostropheSplit(written[j - 1], sourceWords[i - 1], j, writtenCount);
+        const prefix = !exact && (unfinished || pendingSplit) && sourceWords[i - 1].normalized.startsWith(written[j - 1].normalized);
         let bestCost = costs[before] + (exact || prefix ? 0 : 1);
         let bestMatches = matches[before] + (exact ? 2 : prefix ? 1 : 0);
         let bestStep = 1;
@@ -225,7 +234,8 @@
       if (step === 1) {
         const actual = written[j - 1];
         const expected = sourceWords[i - 1];
-        const unfinished = j === writtenCount && actual.end === textLength;
+        const unfinished = isUnfinishedWord(actual, j, writtenCount, text) ||
+          isPendingApostropheSplit(actual, expected, j, writtenCount);
         if (actual.normalized !== expected.normalized) {
           if (unfinished && expected.normalized.startsWith(actual.normalized)) partial = true;
           else errors.push({ word: actual, expected: expected.display });
