@@ -1,4 +1,4 @@
-# Learn My Text
+# ApprendsMonTexte
 
 Une petite application web pour apprendre un texte de théâtre.
 
