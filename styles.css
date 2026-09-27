@@ -1,14 +1,14 @@
 :root { color-scheme: light; --ink: #282b27; --muted: #777b74; --paper: #f7f3eb; --panel: #fffdfa; --line: #deded4; --green: #688b6d; --green-dark: #46694e; --light-green: #e8f0e6; --error: #b74f44; --error-bg: #f9ebe8; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'DM Sans', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'DM Sans', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 button, textarea, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #9fbd9e; outline-offset: 3px; }
 [hidden] { display: none !important; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.app-shell { max-width: 1440px; min-height: 100vh; margin: auto; padding: 0 8.25%; }
-.site-header { height: 98px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.app-shell { display: flex; flex-direction: column; max-width: 1440px; height: 100vh; height: 100dvh; margin: auto; padding: 0 8.25%; }
+.site-header { display: flex; flex: none; align-items: center; justify-content: space-between; height: 98px; border-bottom: 1px solid var(--line); }
 .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-size: 23px; font-weight: 700; letter-spacing: -1.8px; }
 .brand-mark { color: var(--green); font-size: 29px; line-height: 1; font-weight: 400; }
 .brand-accent { margin-left: 3px; color: var(--green); }
@@ -20,12 +20,14 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visib
 .field-label { font-size: 11px; font-weight: 700; letter-spacing: 1.75px; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 500; }
-.workspace { margin: 36px 0 80px; background: var(--panel); border: 1px solid #e7e4db; box-shadow: 0 13px 42px rgba(48, 46, 36, .045); border-radius: 7px; overflow: hidden; }
-.setup-view { padding: 30px 58px 45px; }
-.mode-panel { padding: 30px 58px 45px; }
+main { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.workspace { display: flex; flex: 1; flex-direction: column; min-height: 0; margin: 36px 0; background: var(--panel); border: 1px solid #e7e4db; box-shadow: 0 13px 42px rgba(48, 46, 36, .045); border-radius: 7px; overflow: hidden; }
+.setup-view, .mode-panel { display: flex; flex: 1; flex-direction: column; min-height: 0; padding: 30px 58px 45px; }
+.practice-view { display: flex; flex: 1; flex-direction: column; min-height: 0; }
 h2 { margin: 10px 0 10px; font-size: clamp(31px, 3vw, 42px); line-height: 1.2; letter-spacing: -1.2px; }
 .field-label { display: block; margin: 0 0 12px; color: #5a6058; }
 textarea { display: block; width: 100%; min-height: 255px; padding: 22px 24px; resize: vertical; border: 1px solid #d9ddd4; border-radius: 4px; background: #fff; color: var(--ink); font-size: 16px; line-height: 1.75; }
+#source-text { flex: 1 1 0; min-height: 0; overflow: auto; resize: none; }
 textarea::placeholder, input::placeholder { color: #a7aba3; }
 textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5e5d2; outline-offset: 0; }
 .editor-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 10px; color: #92958e; font-size: 12px; }
@@ -33,9 +35,10 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .primary-button, .secondary-button { display: inline-flex; align-items: center; justify-content: center; gap: 30px; border-radius: 4px; font-weight: 700; transition: background .15s, transform .15s; }
 .primary-button:hover, .secondary-button:hover { transform: translateY(-1px); }
 .primary-button { margin-top: 32px; padding: 16px 23px; border: 1px solid var(--green-dark); background: var(--green-dark); color: #fff; font-size: 13px; }
+.setup-view > .primary-button, .mode-panel > .primary-button { align-self: flex-start; flex: none; }
 .primary-button:hover { background: #36563e; }
 .primary-button span, .secondary-button span, .text-button span { font-size: 18px; line-height: .8; font-weight: 400; }
-.practice-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 58px; border-bottom: 1px solid var(--line); }
+.practice-toolbar { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 20px; padding: 0 58px; border-bottom: 1px solid var(--line); }
 .mode-tabs { display: flex; gap: 35px; }
 .mode-tab { padding: 24px 0 21px; border: none; border-bottom: 2px solid transparent; background: transparent; color: #9b9e97; font-size: 12px; font-weight: 700; letter-spacing: .3px; }
 .mode-tab span { margin-left: 7px; font-size: 14px; }
@@ -43,8 +46,8 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .text-button { display: inline-flex; align-items: center; gap: 9px; padding: 8px 0; border: 0; background: transparent; color: var(--green-dark); font-size: 12px; font-weight: 700; }
 .text-button:hover { text-decoration: underline; }
 .reading-sheet { border: 1px solid #e4e5dd; border-radius: 4px; background: #fafbf7; }
-.reading-sheet { min-height: 160px; padding: 32px 36px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: 'Playfair Display', Georgia, serif; font-size: 21px; line-height: 1.85; }
-.recitation-editor { position: relative; height: 330px; overflow: hidden; border: 1px solid #d9ddd4; border-radius: 4px; background: #fff; }
+.reading-sheet { flex: 1 1 0; min-height: 0; padding: 32px 36px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: 'Playfair Display', Georgia, serif; font-size: 21px; line-height: 1.85; }
+.recitation-editor { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; border: 1px solid #d9ddd4; border-radius: 4px; background: #fff; }
 .recitation-editor:focus-within { border-color: var(--green); outline: 2px solid #d5e5d2; }
 .recitation-highlight, .recitation-input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 22px 24px; border: 0; border-radius: 0; overflow: auto; scrollbar-gutter: stable; white-space: pre-wrap; overflow-wrap: anywhere; font-family: 'DM Sans', Arial, sans-serif; font-size: 16px; font-weight: 400; letter-spacing: normal; line-height: 1.75; tab-size: 8; }
 .recitation-highlight { z-index: 1; pointer-events: none; color: var(--ink); }
@@ -78,6 +81,24 @@ textarea:focus, input:focus { border-color: var(--green); outline: 2px solid #d5
 .help-step { margin-top: 23px; padding-top: 20px; border-top: 1px solid var(--line); }
 .help-step p { margin-top: 8px; }
 .help-note { margin: 23px 0 0; color: #8b9187; font-size: 12px; line-height: 1.6; }
-@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .workspace { margin-top: 22px; } .setup-view { padding: 23px 23px 36px; } .mode-panel { padding: 23px 23px 36px; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-editor { height: 290px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .help-content { padding: 31px 26px 28px; } .help-close-button { top: 15px; right: 16px; } }
+@media (max-width: 700px) { .app-shell { padding: 0 20px; } .site-header { height: 75px; } .brand { font-size: 21px; } .workspace { margin: 22px 0 20px; } .setup-view, .mode-panel { padding: 23px 23px 36px; } .practice-toolbar { align-items: flex-start; flex-direction: column-reverse; gap: 0; padding: 10px 23px 0; } .mode-tabs { width: 100%; gap: 24px; } .mode-tab { padding-top: 16px; white-space: nowrap; } .practice-toolbar > .text-button { align-self: flex-end; } .reading-sheet { padding: 22px; font-size: 18px; } .recitation-highlight, .recitation-input { padding: 18px; } .editor-footer { flex-direction: column; gap: 2px; } .help-content { padding: 31px 26px 28px; } .help-close-button { top: 15px; right: 16px; } }
 @media (max-width: 380px) { .brand { font-size: 18px; } .header-actions { gap: 6px; } }
+@media (max-height: 420px) {
+  .site-header { height: 56px; }
+  .workspace { margin: 8px 0; }
+  .setup-view, .mode-panel { padding: 12px 18px; }
+  .field-label { margin-bottom: 6px; }
+  .editor-footer { margin-top: 4px; }
+  .primary-button { margin-top: 8px; padding: 10px 16px; }
+  .practice-toolbar { padding-top: 0; }
+  .mode-tab { padding-top: 8px; padding-bottom: 7px; }
+  .practice-toolbar > .text-button { padding: 4px 0; }
+  .reading-sheet { padding: 12px; }
+  .recitation-highlight, .recitation-input { padding: 12px; }
+  .recitation-progress { height: 4px; margin-top: 8px; }
+  .recitation-feedback { min-height: 18px; margin-top: 5px; }
+  .practice-actions { margin-top: 5px; }
+  .secondary-button { padding: 8px 12px; }
+  .completion { padding-top: 6px; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
